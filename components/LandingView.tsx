@@ -44,7 +44,7 @@ export const LandingView: React.FC<LandingViewProps> = ({ onStart }) => {
         <div className="glass-panel p-8 rounded-2xl mb-10 w-full shadow-[0_0_50px_rgba(6,182,212,0.15)] border-t border-white/10 backdrop-blur-xl relative overflow-hidden group">
             <div className="absolute top-0 left-0 w-1 h-full bg-gradient-to-b from-transparent via-cyan-400 to-transparent opacity-50"></div>
             <p className="text-lg text-slate-200 leading-relaxed relative z-10">
-              <span className="text-cyan-400 mr-2">></span>
+              <span className="text-cyan-400 mr-2">&gt;</span>
               Upload any real-world photo. Our AI instantly detects hidden hazards, safety risks, and provides immediate solutions.
               <span className="animate-pulse inline-block w-2 h-4 bg-cyan-400 ml-2 align-middle"></span>
             </p>
