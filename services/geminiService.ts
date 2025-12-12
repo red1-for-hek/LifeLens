@@ -34,15 +34,24 @@ const fileToGenerativePart = async (file: File): Promise<{ inlineData: { data: s
   });
 };
 
-export const analyzeImage = async (file: File): Promise<AnalysisResult> => {
+export const isConfigured = (): boolean => {
+  return !!ai;
+};
+
+export const analyzeImage = async (file: File, apiKey?: string): Promise<AnalysisResult> => {
   try {
-    if (!ai) {
+    let client = ai;
+    if (apiKey) {
+      client = new GoogleGenAI({ apiKey });
+    }
+
+    if (!client) {
       throw new Error("Gemini API is not initialized. Check your API key configuration.");
     }
 
     const imagePart = await fileToGenerativePart(file);
 
-    const response = await ai.models.generateContent({
+    const response = await client.models.generateContent({
       model: MODEL_NAME,
       contents: {
         role: "user",

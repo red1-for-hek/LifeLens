@@ -1,6 +1,6 @@
-import React, { useState, useRef, useCallback } from 'react';
+import React, { useState, useRef, useCallback, useEffect } from 'react';
 import { Upload, Camera, ScanEye, X } from 'lucide-react';
-import { analyzeImage } from '../services/geminiService';
+import { analyzeImage, isConfigured } from '../services/geminiService';
 import { AnalysisResult } from '../types';
 
 interface AnalyzerViewProps {
@@ -11,7 +11,16 @@ interface AnalyzerViewProps {
 export const AnalyzerView: React.FC<AnalyzerViewProps> = ({ onAnalysisComplete, onBack }) => {
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [showApiKeyModal, setShowApiKeyModal] = useState(false);
+  const [userApiKey, setUserApiKey] = useState('');
+  const [tempApiKey, setTempApiKey] = useState('');
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (!isConfigured() && !userApiKey) {
+      setShowApiKeyModal(true);
+    }
+  }, [userApiKey]);
 
   const handleFile = useCallback(async (file: File) => {
     if (!file) return;
@@ -22,7 +31,7 @@ export const AnalyzerView: React.FC<AnalyzerViewProps> = ({ onAnalysisComplete, 
     setIsAnalyzing(true);
 
     try {
-      const result = await analyzeImage(file);
+      const result = await analyzeImage(file, userApiKey);
       // Artificial delay for the scanning animation effect if analysis is too fast
       await new Promise(resolve => setTimeout(resolve, 2000));
       onAnalysisComplete(result, objectUrl);
@@ -121,6 +130,49 @@ export const AnalyzerView: React.FC<AnalyzerViewProps> = ({ onAnalysisComplete, 
                 </div>
             )}
         </div>
+
+        {/* API Key Modal */}
+        {showApiKeyModal && (
+            <div className="absolute inset-0 z-50 flex items-center justify-center bg-slate-900/90 backdrop-blur-sm p-4">
+                <div className="bg-slate-800 border border-cyan-500/30 p-6 rounded-2xl w-full max-w-md shadow-2xl shadow-cyan-500/20">
+                    <h3 className="text-xl font-cyber text-white mb-4">ENTER API KEY</h3>
+                    <p className="text-slate-400 text-sm mb-4">
+                        This app requires a Gemini API key to function. 
+                        It will be used temporarily for this session.
+                    </p>
+                    <input 
+                        type="password" 
+                        value={tempApiKey}
+                        onChange={(e) => setTempApiKey(e.target.value)}
+                        placeholder="Paste your Gemini API Key"
+                        className="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-3 text-white focus:border-cyan-400 focus:outline-none mb-4 font-mono"
+                    />
+                    <div className="flex justify-end gap-3">
+                        <button 
+                            onClick={onBack}
+                            className="px-4 py-2 text-slate-400 hover:text-white transition-colors"
+                        >
+                            Cancel
+                        </button>
+                        <button 
+                            onClick={() => {
+                                if (tempApiKey.trim()) {
+                                    setUserApiKey(tempApiKey.trim());
+                                    setShowApiKeyModal(false);
+                                }
+                            }}
+                            disabled={!tempApiKey.trim()}
+                            className="px-6 py-2 bg-cyan-600 text-white rounded-lg font-semibold hover:bg-cyan-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                        >
+                            Start Scanning
+                        </button>
+                    </div>
+                    <p className="text-xs text-slate-500 mt-4 text-center">
+                        Don't have a key? <a href="https://aistudio.google.com/app/apikey" target="_blank" rel="noreferrer" className="text-cyan-400 hover:underline">Get one here</a>
+                    </p>
+                </div>
+            </div>
+        )}
     </div>
   );
 };
