@@ -2,7 +2,19 @@ import { GoogleGenAI, Type } from "@google/genai";
 import { AnalysisResult } from "../types";
 import { MODEL_NAME, SAFETY_SCHEMA, SYSTEM_INSTRUCTION } from "../constants";
 
-const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+let ai: GoogleGenAI | null = null;
+
+try {
+  // @ts-ignore
+  const apiKey = process.env.API_KEY;
+  if (apiKey) {
+    ai = new GoogleGenAI({ apiKey });
+  } else {
+    console.warn("Gemini API Key is missing! Please set GEMINI_API_KEY in your environment.");
+  }
+} catch (error) {
+  console.error("Error initializing Gemini client:", error);
+}
 
 const fileToGenerativePart = async (file: File): Promise<{ inlineData: { data: string; mimeType: string } }> => {
   return new Promise((resolve, reject) => {
@@ -24,6 +36,10 @@ const fileToGenerativePart = async (file: File): Promise<{ inlineData: { data: s
 
 export const analyzeImage = async (file: File): Promise<AnalysisResult> => {
   try {
+    if (!ai) {
+      throw new Error("Gemini API is not initialized. Check your API key configuration.");
+    }
+
     const imagePart = await fileToGenerativePart(file);
 
     const response = await ai.models.generateContent({
