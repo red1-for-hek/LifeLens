@@ -68,11 +68,20 @@ export const analyzeImage = async (file: File): Promise<AnalysisResult> => {
 
   } catch (error) {
     console.error("Error analyzing image:", error);
+    
+    let errorMessage = "Failed to analyze image. Please try again.";
+    let solution = "Check connection and try again.";
+
+    if (error instanceof Error && error.message.includes("API key")) {
+        errorMessage = "Gemini API Key is missing or invalid.";
+        solution = "Please check your Vercel environment variables.";
+    }
+
     // Fallback error result
     return {
       overall_safety_score: 0,
-      summary: "Failed to analyze image. Please try again.",
-      risks: [{ title: "Analysis Error", severity: "High", solution: "Check connection and try again." }]
+      summary: errorMessage,
+      risks: [{ title: "Analysis Error", severity: "High", solution: solution }]
     };
   }
 };
