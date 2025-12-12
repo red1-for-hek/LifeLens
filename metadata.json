@@ -1,0 +1,7 @@
+{
+  "name": "LifeLens",
+  "description": "AI-powered reality analyzer for instant safety and risk detection.",
+  "requestFramePermissions": [
+    "camera"
+  ]
+}
